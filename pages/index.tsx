@@ -12,6 +12,10 @@ import {
   User,
   useAppDispatch,
   useAppSelector,
+  selectShapes,
+  selectIsStorageLoading,
+  selectedSelectedShape,
+  selectOthers,
 } from "../src/store";
 import styles from "./app.module.css";
 
@@ -19,12 +23,10 @@ let roomId = "redux-whiteboard";
 overrideRoomId();
 
 export default function MyApp() {
-  const shapes = useAppSelector((state) => state.shapes);
-  const isLoading = useAppSelector(
-    (state) => state.liveblocks?.isStorageLoading
-  );
-  const selectedShape = useAppSelector((state) => state.selectedShape);
-  const others = useAppSelector((state) => state.liveblocks?.others);
+  const shapes = useAppSelector(selectShapes);
+  const isLoading = useAppSelector(selectIsStorageLoading);
+  const selectedShape = useAppSelector(selectedSelectedShape);
+  const others = useAppSelector(selectOthers);
 
   const dispatch = useAppDispatch();
 

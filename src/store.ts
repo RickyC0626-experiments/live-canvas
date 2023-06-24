@@ -1,7 +1,9 @@
 import { createClient } from "@liveblocks/client";
 import { liveblocksEnhancer } from "@liveblocks/redux";
-import { configureStore, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { compose, configureStore, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
+import logger from "./middleware/logger";
+import monitorReducerEnhancer from "./enhancers/monitorReducer";
 
 export const client = createClient({
   publicApiKey: process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY!,
@@ -98,17 +100,24 @@ export const {
 export function makeStore() {
   return configureStore({
     reducer: slice.reducer,
+    middleware: [logger],
     enhancers: [
       liveblocksEnhancer<State>({
         client,
         presenceMapping: { selectedShape: true },
         storageMapping: { shapes: true },
       }),
+      monitorReducerEnhancer,
     ],
   });
 }
 
 const store = makeStore();
+
+export const selectShapes = (state: State) => state.shapes;
+export const selectedSelectedShape = (state: State) => state.selectedShape;
+export const selectIsStorageLoading = (state: State) => state.liveblocks?.isStorageLoading;
+export const selectOthers = (state: State) => state.liveblocks?.others;
 
 export type AppDispatch = typeof store.dispatch;
 type DispatchFunc = () => AppDispatch;
