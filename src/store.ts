@@ -1,9 +1,9 @@
 import { createClient } from "@liveblocks/client";
 import { liveblocksEnhancer } from "@liveblocks/redux";
-import { compose, configureStore, createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { combineReducers, configureStore, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux";
-import logger from "./middleware/logger";
 import monitorReducerEnhancer from "./enhancers/monitorReducer";
+import logger from "./middleware/logger";
 
 export const client = createClient({
   publicApiKey: process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY!,
@@ -41,6 +41,12 @@ export type State = {
   shapes: Record<string, Shape>;
   selectedShape: string | null;
   isDragging: boolean;
+};
+
+export type CombinedState = {
+  lb: State;
+  metrics: any;
+  liveblocks: LiveblocksState | null;
 };
 
 const initialState: State = {
@@ -99,14 +105,17 @@ export const {
 
 export function makeStore() {
   return configureStore({
-    reducer: slice.reducer,
+    reducer: combineReducers({
+      lb: slice.reducer,
+      metrics: (state = {}) => state,
+    }),
     middleware: [logger],
     enhancers: [
-      liveblocksEnhancer<State>({
-        client,
-        presenceMapping: { selectedShape: true },
-        storageMapping: { shapes: true },
-      }),
+      // liveblocksEnhancer<State>({
+      //   client,
+      //   presenceMapping: { selectedShape: true },
+      //   storageMapping: { shapes: true },
+      // }),
       monitorReducerEnhancer,
     ],
   });
@@ -114,14 +123,14 @@ export function makeStore() {
 
 const store = makeStore();
 
-export const selectShapes = (state: State) => state.shapes;
-export const selectedSelectedShape = (state: State) => state.selectedShape;
-export const selectIsStorageLoading = (state: State) => state.liveblocks?.isStorageLoading;
-export const selectOthers = (state: State) => state.liveblocks?.others;
+export const selectShapes = (state: CombinedState) => state.lb.shapes;
+export const selectedSelectedShape = (state: CombinedState) => state.lb.selectedShape;
+export const selectIsStorageLoading = (state: CombinedState) => state.liveblocks?.isStorageLoading;
+export const selectOthers = (state: CombinedState) => state.liveblocks?.others;
 
 export type AppDispatch = typeof store.dispatch;
 type DispatchFunc = () => AppDispatch;
 export const useAppDispatch: DispatchFunc = useDispatch; // Export a hook that can be reused to resolve types
-export const useAppSelector: TypedUseSelectorHook<State> = useSelector;
+export const useAppSelector: TypedUseSelectorHook<CombinedState> = useSelector;
 
 export default store;

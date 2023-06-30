@@ -14,7 +14,12 @@ const monitorReducerEnhancer: StoreEnhancer = (createStore: StoreEnhancerStoreCr
 
     console.log("Reducer process time: ", diff);
 
-    return newState;
+    return {
+      ...newState,
+      metrics: {
+        reducerProcessTime: diff,
+      },
+    };
   };
 
   return createStore(monitoredReducer, initialState);
